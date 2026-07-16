@@ -84,6 +84,70 @@ const AttendanceSummaryCard = ({ studentId }) => {
   );
 };
 
+// ─── Student Fees & Billing Card ──────────────────────────────────────────────
+const StudentFeesCard = ({ studentId }) => {
+  const [invoices, setInvoices] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchInvoices = async () => {
+      try {
+        const res = await client.get(`fees/invoices/?student=${studentId}`);
+        setInvoices(res.data);
+      } catch (_) {}
+      finally { setLoading(false); }
+    };
+    fetchInvoices();
+  }, [studentId]);
+
+  if (loading) return (
+    <div className="bg-slate-900/20 border border-slate-850 p-6 rounded-2xl flex items-center justify-center">
+      <div className="h-6 w-6 animate-spin rounded-full border-2 border-indigo-500 border-t-transparent" />
+    </div>
+  );
+
+  const totalDue = invoices.reduce((acc, inv) => acc + Number(inv.balance_due), 0);
+
+  return (
+    <div className="space-y-4">
+      <div className="bg-slate-950/60 border border-slate-800 rounded-2xl p-4 flex justify-between items-center">
+        <div>
+          <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest block">Outstanding Dues</span>
+          <span className={`text-xl font-black ${totalDue > 0 ? 'text-amber-400' : 'text-emerald-400'}`}>
+            ₹{totalDue.toLocaleString('en-IN')}
+          </span>
+        </div>
+        <span className={`px-2.5 py-1 rounded-full text-xs font-bold border ${totalDue > 0 ? 'bg-amber-500/10 text-amber-400 border-amber-500/20' : 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'}`}>
+          {totalDue > 0 ? 'Dues Outstanding' : 'All Clear'}
+        </span>
+      </div>
+
+      {invoices.length === 0 ? (
+        <div className="bg-slate-900/20 border border-slate-850 p-6 rounded-2xl text-center text-slate-500 text-xs">
+          No billing invoices issued for this student yet.
+        </div>
+      ) : (
+        <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
+          {invoices.map((inv) => (
+            <div key={inv.id} className="bg-slate-950 border border-slate-800/80 rounded-xl p-3 flex items-center justify-between text-xs">
+              <div>
+                <span className="font-mono font-bold text-indigo-400 block">INV-{String(inv.id).padStart(4, '0')}</span>
+                <span className="text-slate-400">Due: {inv.due_date}</span>
+              </div>
+              <div className="text-right">
+                <span className="font-bold text-white block">₹{Number(inv.amount_due).toLocaleString('en-IN')}</span>
+                <span className={`text-[10px] font-semibold ${inv.status === 'PAID' ? 'text-emerald-400' : 'text-amber-400'}`}>
+                  {inv.status}
+                </span>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
+
 const StudentDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -272,18 +336,13 @@ const StudentDetail = () => {
           <AttendanceSummaryCard studentId={id} />
         </div>
 
-        {/* Fees Log Placeholder */}
+        {/* Live Balance & Receipts */}
         <div className="bg-slate-900/10 border border-slate-800/40 rounded-3xl p-6 md:p-8 space-y-4">
           <div>
-            <h2 className="text-lg font-bold text-white">Balance & Receipts</h2>
-            <p className="text-slate-500 text-xs mt-0.5">Allocated fees, pending payments, and receipts (Phase 6)</p>
+            <h2 className="text-lg font-bold text-white">Balance & Billing Ledger</h2>
+            <p className="text-slate-500 text-xs mt-0.5">Invoices, pending dues, and payment history</p>
           </div>
-          <div className="bg-slate-900/20 border border-slate-850 p-6 rounded-2xl text-center text-slate-500 text-xs">
-            <svg className="w-8 h-8 text-slate-650 mx-auto mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2" />
-            </svg>
-            Billing ledger and fee receipts will be loaded in Phase 6.
-          </div>
+          <StudentFeesCard studentId={id} />
         </div>
       </div>
     </div>

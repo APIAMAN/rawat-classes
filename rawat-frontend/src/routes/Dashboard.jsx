@@ -1,8 +1,23 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useSelector } from 'react-redux';
+import { Link } from 'react-router-dom';
+import client from '../api/client';
 
 const Dashboard = () => {
   const { user } = useSelector((state) => state.auth);
+  const isAdmin = user?.role === 'admin';
+
+  const [feesSummary, setFeesSummary] = useState(null);
+
+  useEffect(() => {
+    const fetchSummary = async () => {
+      try {
+        const res = await client.get('fees/dashboard/');
+        setFeesSummary(res.data);
+      } catch (_) {}
+    };
+    fetchSummary();
+  }, []);
 
   const stats = [
     { label: 'Active Batches', value: '12', change: '+2 this month', icon: 'M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10' },
@@ -46,6 +61,46 @@ const Dashboard = () => {
           </div>
         ))}
       </div>
+
+      {/* Fees & Revenue Summary Widget */}
+      {feesSummary && (
+        <div className="bg-gradient-to-r from-slate-900/80 to-slate-950 border border-slate-800 rounded-3xl p-6 md:p-8 space-y-6">
+          <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
+            <div>
+              <h2 className="text-lg font-bold text-white flex items-center gap-2">
+                <svg className="w-5 h-5 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                Revenue & Fees Overview
+              </h2>
+              <p className="text-slate-500 text-xs mt-0.5">Real-time breakdown of collections and pending dues</p>
+            </div>
+            {isAdmin && (
+              <Link
+                to="/fees"
+                className="px-4 py-2 bg-indigo-600/20 hover:bg-indigo-600 border border-indigo-500/30 text-indigo-300 hover:text-white text-xs font-semibold rounded-xl transition-all self-start sm:self-auto"
+              >
+                Open Fees Portal →
+              </Link>
+            )}
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 pt-2">
+            <div className="bg-slate-950/60 border border-slate-800 rounded-2xl p-5">
+              <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest block mb-1">Collected This Month</span>
+              <span className="text-2xl font-black text-emerald-400">₹{Number(feesSummary.collected_this_month).toLocaleString('en-IN')}</span>
+            </div>
+            <div className="bg-slate-950/60 border border-slate-800 rounded-2xl p-5">
+              <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest block mb-1">Total Pending Dues</span>
+              <span className="text-2xl font-black text-amber-400">₹{Number(feesSummary.total_pending).toLocaleString('en-IN')}</span>
+            </div>
+            <div className="bg-slate-950/60 border border-slate-800 rounded-2xl p-5">
+              <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest block mb-1">Overdue Count</span>
+              <span className="text-2xl font-black text-rose-400">{feesSummary.overdue_count} Invoices</span>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Profile Card */}
       <div className="bg-slate-900/20 border border-slate-800/60 rounded-3xl p-6 md:p-8 space-y-6">
