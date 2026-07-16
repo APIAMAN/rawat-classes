@@ -67,3 +67,17 @@ class BatchViewSet(viewsets.ModelViewSet):
             serializer.is_valid(raise_exception=True)
             serializer.save(batch=batch)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+    @action(detail=True, methods=['get'], url_path='students')
+    def students(self, request, pk=None):
+        """
+        Nested endpoint to retrieve enrolled students for a specific batch.
+        GET /api/v1/batches/{id}/students/
+        """
+        batch = self.get_object()
+        enrollments = batch.student_enrollments.filter(is_active=True).select_related('student__user')
+        students = [e.student for e in enrollments]
+        
+        from students.serializers import StudentSerializer
+        serializer = StudentSerializer(students, many=True, context=self.context)
+        return Response(serializer.data, status=status.HTTP_200_OK)

@@ -111,15 +111,22 @@ class CustomLogoutView(APIView):
 
 class UserMeView(APIView):
     """
-    Returns current authenticated user details.
+    Returns current authenticated user details, along with their related profile ID if available.
     """
     permission_classes = (IsAuthenticated,)
     
     def get(self, request):
         user = request.user
+        profile_id = None
+        if user.role == 'teacher' and hasattr(user, 'teacher_profile'):
+            profile_id = user.teacher_profile.id
+        elif user.role == 'student' and hasattr(user, 'student_profile'):
+            profile_id = user.student_profile.id
+
         return Response({
             "id": user.id,
             "username": user.username,
             "email": user.email,
-            "role": user.role
+            "role": user.role,
+            "profile_id": profile_id
         }, status=status.HTTP_200_OK)
