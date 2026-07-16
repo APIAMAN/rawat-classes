@@ -21,7 +21,7 @@ from core.views import health_check
 api_urlpatterns = [
     path('health/', health_check, name='health_check'),
     path('core/', include('core.urls')),
-    path('accounts/', include('accounts.urls')),
+    path('auth/', include('accounts.urls')),
     path('teachers/', include('teachers.urls')),
     path('batches/', include('batches.urls')),
     path('students/', include('students.urls')),
