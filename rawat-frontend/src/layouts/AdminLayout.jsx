@@ -9,8 +9,8 @@ const AdminLayout = () => {
   const { user } = useSelector((state) => state.auth);
   const [mobileOpen, setMobileOpen] = useState(false);
 
-  const handleLogout = async () => {
-    await dispatch(logoutUser());
+  const handleLogout = () => {
+    dispatch(logoutUser());
     navigate('/login');
   };
 
