@@ -133,27 +133,11 @@ const Dashboard = () => {
 
   return (
     <div className="space-y-8">
-      {/* Welcome banner */}
-      <div className="bg-gradient-to-r from-indigo-950/60 via-slate-900 to-slate-950 border border-slate-800/90 rounded-3xl p-6 md:p-8 flex flex-col md:flex-row items-center justify-between gap-6 shadow-xl relative overflow-hidden">
-        <div className="space-y-2 text-center md:text-left relative z-10">
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-indigo-500/10 text-indigo-300 border border-indigo-500/20 text-xs font-bold font-heading">
-            ⚡ Real-time Analytics Dashboard
-          </span>
-          <h1 className="text-2xl md:text-3xl font-extrabold text-white tracking-wide font-heading">
-            Welcome back, <span className="bg-gradient-to-r from-indigo-300 via-indigo-400 to-violet-300 bg-clip-text text-transparent">{displayName}</span>!
-          </h1>
-          <p className="text-slate-400 text-xs md:text-sm max-w-lg">
-            {isTeacher
-              ? 'Real-time overview of your assigned batches, student rosters, and roll call attendance.'
-              : role === 'student'
-              ? 'Real-time overview of your enrolled classes and academic attendance history.'
-              : 'Live database metric synthesis of student rosters, active batches, attendance logs, and fee collections.'}
-          </p>
-        </div>
-        <div className="bg-slate-950/80 border border-slate-800 rounded-2xl px-5 py-3.5 text-center shrink-0 relative z-10">
-          <span className="text-[10px] text-slate-500 font-bold block uppercase tracking-wider">Assigned System Role</span>
-          <span className="text-sm font-extrabold text-indigo-400 capitalize font-heading">{user?.role}</span>
-        </div>
+      {/* Clean Salutation Header */}
+      <div>
+        <h1 className="text-2xl md:text-3xl font-extrabold text-white font-heading tracking-tight">
+          Welcome back, <span className="bg-gradient-to-r from-indigo-300 via-indigo-400 to-violet-300 bg-clip-text text-transparent">{displayName}</span>!
+        </h1>
       </div>
 
       {/* Role-tailored Stats Grid */}

@@ -174,13 +174,6 @@ const AdminLayout = () => {
             <span className="text-slate-700">/</span>
             <span className="text-sm font-bold text-white font-heading">{getBreadcrumb()}</span>
           </div>
-
-          <div className="flex items-center gap-4">
-            <div className="px-3 py-1 bg-slate-900 border border-slate-800 rounded-full text-xs font-semibold text-slate-400 flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-              Django System Online
-            </div>
-          </div>
         </header>
 
         {/* Independent Scrollable Content Area */}
