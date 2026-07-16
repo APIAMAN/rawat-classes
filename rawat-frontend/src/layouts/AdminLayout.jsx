@@ -56,12 +56,13 @@ const AdminLayout = () => {
     return 'Rawat Workspace';
   };
 
-  const displayName = user?.full_name || (user?.first_name ? `${user.first_name} ${user.last_name || ''}`.trim() : user?.username) || 'User';
+  const displayName = user?.full_name || (user?.first_name ? `${user.first_name} ${user.last_name || ''}`.trim() : (user?.username === 'admin' ? 'Administrator' : user?.username)) || 'User';
   const userInitials = user?.first_name ? `${user.first_name[0]}${user.last_name ? user.last_name[0] : ''}`.toUpperCase() : user?.username?.substring(0, 2).toUpperCase() || 'AD';
 
   return (
-    <div className="min-h-screen bg-[#070a12] text-slate-100 flex flex-col md:flex-row font-sans">
-      <div className="md:hidden flex items-center justify-between bg-slate-900/90 border-b border-slate-800/80 px-5 py-4 backdrop-blur-md sticky top-0 z-40">
+    <div className="h-screen w-full bg-[#070a12] text-slate-100 flex flex-col md:flex-row font-sans overflow-hidden">
+      {/* Mobile Top Navbar Header */}
+      <div className="md:hidden flex items-center justify-between bg-slate-900/90 border-b border-slate-800/80 px-5 py-4 backdrop-blur-md sticky top-0 z-40 shrink-0">
         <div className="flex items-center gap-3">
           <div className="h-9 w-9 rounded-xl overflow-hidden shadow-md border border-amber-400/40">
             <img src={saraswatiImg} alt="Saraswati Emblem" className="w-full h-full object-cover" />
@@ -82,6 +83,7 @@ const AdminLayout = () => {
         </button>
       </div>
 
+      {/* Mobile Overlay backdrop */}
       {mobileOpen && (
         <div
           onClick={() => setMobileOpen(false)}
@@ -89,12 +91,14 @@ const AdminLayout = () => {
         />
       )}
 
+      {/* Fixed Sidebar Navigation with Pinned Footer */}
       <aside
         className={`${
           mobileOpen ? 'translate-x-0' : '-translate-x-full'
-        } md:translate-x-0 transition-transform duration-300 ease-in-out fixed md:static top-0 left-0 h-full w-72 bg-[#0b101d] border-r border-slate-800/80 shrink-0 z-40 flex flex-col justify-between`}
+        } md:translate-x-0 transition-transform duration-300 ease-in-out fixed md:static top-0 left-0 h-full md:h-screen w-72 bg-[#0b101d] border-r border-slate-800/80 shrink-0 z-40 flex flex-col justify-between overflow-hidden`}
       >
-        <div className="p-6 space-y-8 overflow-y-auto">
+        {/* Scrollable Upper Nav Section */}
+        <div className="p-6 space-y-8 overflow-y-auto flex-1 min-h-0">
           <div className="flex items-center gap-3.5">
             <div className="h-10 w-10 rounded-2xl overflow-hidden border border-amber-400/40 shadow-lg shadow-amber-500/10 shrink-0">
               <img src={saraswatiImg} alt="Maa Saraswati Emblem" className="w-full h-full object-cover" />
@@ -135,7 +139,8 @@ const AdminLayout = () => {
           </nav>
         </div>
 
-        <div className="p-5 border-t border-slate-800/80 bg-slate-950/40 space-y-4">
+        {/* Strictly Pinned Bottom Sidebar Footer */}
+        <div className="p-5 border-t border-slate-800/80 bg-slate-950/60 space-y-4 shrink-0 mt-auto">
           <div className="flex items-center gap-3 px-1">
             <div className="h-10 w-10 bg-gradient-to-tr from-indigo-900 to-slate-800 rounded-xl flex items-center justify-center border border-indigo-500/30 text-sm font-black text-indigo-300 uppercase font-heading shrink-0 shadow-sm">
               {userInitials}
@@ -150,9 +155,9 @@ const AdminLayout = () => {
           </div>
           <button
             onClick={handleLogout}
-            className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-slate-900 hover:bg-rose-950/30 hover:text-rose-300 border border-slate-800 hover:border-rose-900/40 rounded-xl text-xs font-bold text-slate-400 transition-all"
+            className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-slate-900 hover:bg-rose-950/40 hover:text-rose-300 border border-slate-800 hover:border-rose-900/50 rounded-xl text-xs font-bold text-slate-300 transition-all shadow-sm"
           >
-            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg className="w-4 h-4 text-slate-400 group-hover:text-rose-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
             </svg>
             Sign Out
@@ -160,10 +165,10 @@ const AdminLayout = () => {
         </div>
       </aside>
 
-      {/* Main Content Body */}
-      <div className="flex-1 flex flex-col min-w-0">
-        {/* Top Header Bar */}
-        <header className="hidden md:flex items-center justify-between px-8 py-4 bg-[#090d16]/80 border-b border-slate-800/80 backdrop-blur-md sticky top-0 z-30">
+      {/* Main Content Viewport Container */}
+      <div className="flex-1 flex flex-col min-w-0 h-screen overflow-hidden">
+        {/* Strictly Fixed Top Header Bar */}
+        <header className="hidden md:flex items-center justify-between px-8 py-4 bg-[#090d16]/90 border-b border-slate-800/80 backdrop-blur-md shrink-0 z-30">
           <div className="flex items-center gap-3">
             <span className="text-xs font-semibold text-slate-500">Rawat Classes</span>
             <span className="text-slate-700">/</span>
@@ -178,7 +183,7 @@ const AdminLayout = () => {
           </div>
         </header>
 
-        {/* Dynamic Route Outlet */}
+        {/* Independent Scrollable Content Area */}
         <main className="flex-1 p-6 md:p-8 overflow-y-auto max-w-7xl w-full mx-auto space-y-8">
           <Outlet />
         </main>

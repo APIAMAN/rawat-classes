@@ -5,6 +5,7 @@ from core.admin import admin_site
 api_urlpatterns = [
     path('health/', health_check, name='health_check'),
     path('core/', include('core.urls')),
+    path('dashboard/', include('core.urls')),
     path('auth/', include('accounts.urls')),
     path('teachers/', include('teachers.urls')),
     path('batches/', include('batches.urls')),
