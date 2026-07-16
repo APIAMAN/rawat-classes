@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useSelector } from 'react-redux';
 import client from '../api/client';
+import PageHeader from '../components/PageHeader';
+import { useToast } from '../context/ToastContext';
 
 // ─── Status pill styling & labels ────────────────────────────────────────────
 const STATUS_CONFIG = {
@@ -35,6 +37,7 @@ const PaymentModeBadge = ({ mode }) => {
 };
 
 const Fees = () => {
+  const toast = useToast();
   const { user } = useSelector((state) => state.auth);
   const isAdmin = user?.role === 'admin';
 
@@ -133,11 +136,13 @@ const Fees = () => {
   // Handle Recording Payment
   const handleOpenPaymentModal = (inv) => {
     setPaymentModalInvoice(inv);
+    const isPartial = Number(inv.amount_paid) > 0;
+    const paymentCount = inv.payments ? inv.payments.length + 1 : 1;
     setPaymentForm({
       amount_paid: inv.balance_due,
       payment_mode: 'UPI',
       payment_date: new Date().toISOString().slice(0, 10),
-      remarks: '',
+      remarks: isPartial ? `Installment #${paymentCount}` : 'Full Settlement',
     });
     setPaymentError(null);
   };
@@ -151,8 +156,11 @@ const Fees = () => {
       await client.post(`fees/invoices/${paymentModalInvoice.id}/pay/`, paymentForm);
       setPaymentModalInvoice(null);
       await fetchAllData();
+      toast.success('Payment recorded and receipt generated.');
     } catch (err) {
-      setPaymentError(err.response?.data?.detail || err.response?.data?.amount_paid?.[0] || 'Payment processing failed.');
+      const msg = err.response?.data?.detail || err.response?.data?.amount_paid?.[0] || 'Payment processing failed.';
+      setPaymentError(msg);
+      toast.error(msg);
     } finally {
       setPaymentSubmitting(false);
     }
@@ -175,8 +183,11 @@ const Fees = () => {
       await client.post('fees/invoices/', payload);
       setIsGenModalOpen(false);
       await fetchAllData();
+      toast.success('Invoices issued successfully.');
     } catch (err) {
-      setGenError(err.response?.data?.non_field_errors?.[0] || err.response?.data?.detail || 'Failed to issue invoice.');
+      const msg = err.response?.data?.non_field_errors?.[0] || err.response?.data?.detail || 'Failed to issue invoice.';
+      setGenError(msg);
+      toast.error(msg);
     } finally {
       setGenSubmitting(false);
     }
@@ -200,8 +211,11 @@ const Fees = () => {
       await client.post('fees/structures/', payload);
       setIsStructModalOpen(false);
       await fetchAllData();
+      toast.success('Fee structure template created.');
     } catch (err) {
-      setStructError(err.response?.data?.detail || 'Failed to create fee structure template.');
+      const msg = err.response?.data?.detail || 'Failed to create fee structure template.';
+      setStructError(msg);
+      toast.error(msg);
     } finally {
       setStructSubmitting(false);
     }
@@ -222,35 +236,30 @@ const Fees = () => {
 
   return (
     <div className="space-y-8">
-      {/* Top Title & Quick Actions */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-white tracking-tight">Fees & Billing Portal</h1>
-          <p className="text-sm text-slate-400 mt-1">Manage fee structures, issue student invoices, and log receipts</p>
-        </div>
-        {isAdmin && (
-          <div className="flex items-center gap-3">
-            <button
-              onClick={() => setIsStructModalOpen(true)}
-              className="px-4 py-2.5 bg-slate-900 border border-slate-800 hover:border-indigo-500/50 hover:bg-slate-800 text-slate-200 text-sm font-semibold rounded-xl transition-all shadow-sm flex items-center gap-2"
-            >
-              <svg className="w-4 h-4 text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-              </svg>
-              New Fee Structure
-            </button>
-            <button
-              onClick={() => setIsGenModalOpen(true)}
-              className="px-5 py-2.5 bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white text-sm font-semibold rounded-xl shadow-lg shadow-indigo-600/25 transition-all flex items-center gap-2"
-            >
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-              </svg>
-              Issue Invoice
-            </button>
-          </div>
-        )}
-      </div>
+      {/* Page Header */}
+      <PageHeader
+        title="Fees & Billing Portal"
+        subtitle="Manage fee structures, issue student invoices, and log payment receipts"
+        badge="Live Billing"
+        actionButton={
+          isAdmin ? (
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => setIsStructModalOpen(true)}
+                className="btn-secondary text-xs flex items-center gap-2"
+              >
+                + Fee Structure
+              </button>
+              <button
+                onClick={() => setIsGenModalOpen(true)}
+                className="btn-primary flex items-center gap-2"
+              >
+                + Issue Invoice
+              </button>
+            </div>
+          ) : null
+        }
+      />
 
       {/* Overview Metric Widgets */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
@@ -625,7 +634,7 @@ const Fees = () => {
 
             <form onSubmit={handleRecordPaymentSubmit} className="space-y-4">
               <div>
-                <label className="block text-xs font-semibold text-slate-400 uppercase mb-1">Amount Paying (₹)</label>
+                <label className="block text-xs font-semibold text-slate-400 uppercase mb-1">Installment Amount (₹)</label>
                 <input
                   type="number"
                   step="0.01"
@@ -634,6 +643,27 @@ const Fees = () => {
                   onChange={(e) => setPaymentForm({ ...paymentForm, amount_paid: e.target.value })}
                   className="w-full bg-slate-950 border border-slate-800 text-white text-lg font-bold rounded-xl px-4 py-3 focus:outline-none focus:border-indigo-500"
                 />
+                {/* Installment Presets */}
+                <div className="flex gap-2 mt-2">
+                  <button
+                    type="button"
+                    onClick={() => setPaymentForm({ ...paymentForm, amount_paid: paymentModalInvoice.balance_due, remarks: 'Full Settlement' })}
+                    className="text-[11px] font-semibold px-2.5 py-1 bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 rounded-lg hover:bg-indigo-500/20"
+                  >
+                    Full Balance (₹{paymentModalInvoice.balance_due})
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setPaymentForm({
+                      ...paymentForm,
+                      amount_paid: (Number(paymentModalInvoice.balance_due) / 2).toFixed(2),
+                      remarks: `Installment #${(paymentModalInvoice.payments?.length || 0) + 1} (50%)`
+                    })}
+                    className="text-[11px] font-semibold px-2.5 py-1 bg-amber-500/10 text-amber-400 border border-amber-500/20 rounded-lg hover:bg-amber-500/20"
+                  >
+                    50% Installment (₹{(Number(paymentModalInvoice.balance_due) / 2).toFixed(0)})
+                  </button>
+                </div>
               </div>
 
               <div>

@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useSelector } from 'react-redux';
 import client from '../api/client';
+import PageHeader from '../components/PageHeader';
+import { useToast } from '../context/ToastContext';
 
 // ─── Status config ────────────────────────────────────────────────────────────
 const STATUS_CONFIG = {
@@ -26,6 +28,7 @@ const StatusBadge = ({ status }) => {
 
 // ─── Tab: Take Attendance ─────────────────────────────────────────────────────
 const TakeAttendanceTab = ({ batches, userRole, teacherBatchIds }) => {
+  const toast = useToast();
   const [batchId, setBatchId] = useState('');
   const [date, setDate] = useState(today());
   const [session, setSession] = useState(null);
@@ -97,8 +100,11 @@ const TakeAttendanceTab = ({ batches, userRole, teacherBatchIds }) => {
         records: records.map(r => ({ student_id: r.student_id, status: r.status }))
       });
       setMsg({ type: 'success', text: 'Attendance saved successfully!' });
+      toast.success('Attendance records saved successfully.');
     } catch (e) {
-      setMsg({ type: 'error', text: e.response?.data?.detail || 'Failed to save.' });
+      const errorMsg = e.response?.data?.detail || 'Failed to save.';
+      setMsg({ type: 'error', text: errorMsg });
+      toast.error(errorMsg);
     } finally {
       setSaving(false);
     }
@@ -435,16 +441,11 @@ const Attendance = () => {
   return (
     <div className="space-y-6">
       {/* Page Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-white tracking-tight">Attendance</h1>
-          <p className="text-sm text-slate-400 mt-0.5">Mark daily attendance and review history</p>
-        </div>
-        <div className="flex items-center gap-2 text-xs text-slate-500">
-          <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-          Live
-        </div>
-      </div>
+      <PageHeader
+        title="Attendance Tracking"
+        subtitle="Mark daily batch attendance and inspect cross-tabular attendance logs"
+        badge="Live Attendance"
+      />
 
       {/* Tabs */}
       <div className="flex gap-1 bg-slate-900/60 border border-slate-800 rounded-xl p-1 w-fit">

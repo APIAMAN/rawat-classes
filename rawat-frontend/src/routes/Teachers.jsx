@@ -2,8 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { useSelector } from 'react-redux';
 import { Link } from 'react-router-dom';
 import client from '../api/client';
+import PageHeader from '../components/PageHeader';
+import DataTable from '../components/DataTable';
+import { useToast } from '../context/ToastContext';
 
 const Teachers = () => {
+  const toast = useToast();
   const { user } = useSelector((state) => state.auth);
   const isAdmin = user?.role === 'admin';
 
@@ -13,14 +17,14 @@ const Teachers = () => {
 
   // Filters & Search
   const [search, setSearch] = useState('');
-  const [activeFilter, setActiveFilter] = useState('all'); // 'all', 'active', 'inactive'
+  const [activeFilter, setActiveFilter] = useState('all');
   const [specFilter, setSpecFilter] = useState('');
   const [page, setPage] = useState(1);
   const itemsPerPage = 5;
 
   // Form Drawer State
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
-  const [editingTeacher, setEditingTeacher] = useState(null); // null if adding new
+  const [editingTeacher, setEditingTeacher] = useState(null);
   const [formError, setFormError] = useState(null);
   const [formLoading, setFormLoading] = useState(false);
 
@@ -47,6 +51,7 @@ const Teachers = () => {
       setTeachers(response.data);
     } catch (err) {
       setError(err.response?.data?.detail || 'Failed to fetch teachers.');
+      toast.error('Failed to load teacher records.');
     } finally {
       setLoading(false);
     }
@@ -80,7 +85,7 @@ const Teachers = () => {
     setFormError(null);
     setFormData({
       username: teacher.user.username,
-      password: '', // blank by default for edit
+      password: '',
       email: teacher.user.email,
       first_name: teacher.user.first_name,
       last_name: teacher.user.last_name,
@@ -124,23 +129,22 @@ const Teachers = () => {
           joining_date: formData.joining_date,
           is_active: formData.is_active,
         };
-        // Add password if they provided a new one
         if (formData.password) {
           payload.user.password = formData.password;
         }
 
         const response = await client.put(`teachers/${editingTeacher.id}/`, payload);
-        // Update local state
         setTeachers(teachers.map(t => t.id === editingTeacher.id ? response.data : t));
         setIsDrawerOpen(false);
+        toast.success(`Updated teacher profile for ${response.data.user.first_name || response.data.employee_id}`);
       } else {
         // Add New Teacher (POST)
         const response = await client.post('teachers/', formData);
         setTeachers([response.data, ...teachers]);
         setIsDrawerOpen(false);
+        toast.success(`Created teacher account for ${response.data.user.first_name || response.data.employee_id}`);
       }
     } catch (err) {
-      // Map validation errors nicely
       const errData = err.response?.data;
       if (typeof errData === 'object') {
         const firstErrorKey = Object.keys(errData)[0];
@@ -151,6 +155,7 @@ const Teachers = () => {
       } else {
         setFormError('Failed to save teacher. Ensure credentials and employee ID are unique.');
       }
+      toast.error('Validation error. Check form details.');
     } finally {
       setFormLoading(false);
     }
@@ -163,8 +168,9 @@ const Teachers = () => {
     try {
       await client.delete(`teachers/${id}/`);
       setTeachers(teachers.filter(t => t.id !== id));
+      toast.success('Teacher account deleted.');
     } catch (err) {
-      alert(err.response?.data?.detail || 'Failed to delete teacher');
+      toast.error(err.response?.data?.detail || 'Failed to delete teacher');
     }
   };
 
@@ -191,59 +197,59 @@ const Teachers = () => {
 
   return (
     <div className="space-y-6">
-      {/* Title & Actions */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div>
-          <h1 className="text-2xl md:text-3xl font-extrabold text-white tracking-wide">Teachers Portal</h1>
-          <p className="text-slate-500 text-sm mt-0.5">Manage details and permissions for academic staff</p>
-        </div>
-        {isAdmin && (
-          <button
-            onClick={openAddDrawer}
-            className="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 font-semibold rounded-xl text-white transition-all shadow-md shadow-indigo-600/10 flex items-center gap-2"
-          >
-            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-            </svg>
-            Add New Teacher
-          </button>
-        )}
-      </div>
+      {/* Page Header */}
+      <PageHeader
+        title="Teachers Registry"
+        subtitle="Manage academic faculty, credentials, and subject specializations"
+        badge={`${teachers.length} Active Staff`}
+        actionButton={
+          isAdmin ? (
+            <button onClick={openAddDrawer} className="btn-primary flex items-center gap-2">
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+              </svg>
+              Add Teacher
+            </button>
+          ) : null
+        }
+      />
 
-      {/* Filters and Search Bar */}
-      <div className="bg-slate-900/40 border border-slate-800/80 rounded-2xl p-5 flex flex-col md:flex-row gap-4 items-center justify-between">
-        <div className="relative w-full md:max-w-md">
-          <span className="absolute inset-y-0 left-0 flex items-center pl-3.5 pointer-events-none text-slate-500">
-            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-            </svg>
-          </span>
+      {error && (
+        <div className="bg-rose-950/40 border border-rose-800/60 rounded-xl px-5 py-3.5 text-sm text-rose-300">
+          {error}
+        </div>
+      )}
+
+      {/* Filter and Search Controls */}
+      <div className="bg-slate-900/60 border border-slate-800/80 rounded-2xl p-4 flex flex-col md:flex-row gap-4 items-center justify-between backdrop-blur-sm">
+        <div className="relative w-full md:w-80">
+          <svg className="w-5 h-5 absolute left-3.5 top-3 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+          </svg>
           <input
             type="text"
-            placeholder="Search by name or employee ID..."
+            placeholder="Search by name, ID..."
             value={search}
             onChange={(e) => { setSearch(e.target.value); setPage(1); }}
-            className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-11 pr-4 py-2.5 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-indigo-500 transition duration-150"
+            className="input-base pl-10 w-full"
           />
         </div>
 
-        <div className="flex flex-wrap items-center gap-4 w-full md:w-auto">
-          {/* Active status filter */}
+        <div className="flex items-center gap-3 w-full md:w-auto">
           <select
             value={activeFilter}
             onChange={(e) => { setActiveFilter(e.target.value); setPage(1); }}
-            className="bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-slate-300 focus:outline-none focus:border-indigo-500"
+            className="input-base py-2.5"
           >
             <option value="all">All Statuses</option>
             <option value="active">Active Only</option>
             <option value="inactive">Inactive Only</option>
           </select>
 
-          {/* Specialization filter */}
           <select
             value={specFilter}
             onChange={(e) => { setSpecFilter(e.target.value); setPage(1); }}
-            className="bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-slate-300 focus:outline-none focus:border-indigo-500 max-w-[160px]"
+            className="input-base py-2.5"
           >
             <option value="">All Specializations</option>
             {uniqueSpecs.map(spec => (
@@ -253,383 +259,284 @@ const Teachers = () => {
         </div>
       </div>
 
-      {/* Teachers List Table */}
-      {loading ? (
-        <div className="flex justify-center items-center py-20">
-          <div className="h-10 w-10 animate-spin rounded-full border-4 border-indigo-500 border-t-transparent"></div>
-        </div>
-      ) : error ? (
-        <div className="bg-rose-950/20 border border-rose-900/50 rounded-2xl p-6 text-center text-rose-400">
-          {error}
-        </div>
-      ) : filteredTeachers.length === 0 ? (
-        <div className="bg-slate-900/10 border border-slate-800/80 rounded-2xl p-12 text-center text-slate-500">
-          No teachers found matching your filters.
-        </div>
-      ) : (
-        <div className="space-y-4">
-          <div className="bg-slate-900/20 border border-slate-800/80 rounded-2xl overflow-hidden shadow-xl">
-            <div className="overflow-x-auto">
-              <table className="w-full border-collapse text-left text-sm text-slate-300">
-                <thead>
-                  <tr className="bg-slate-900/60 border-b border-slate-800 text-xs font-bold uppercase tracking-wider text-slate-400">
-                    <th className="px-6 py-4">Employee ID</th>
-                    <th className="px-6 py-4">Name</th>
-                    <th className="px-6 py-4">Subject Specialty</th>
-                    <th className="px-6 py-4">Phone</th>
-                    <th className="px-6 py-4">Status</th>
-                    <th className="px-6 py-4 text-right">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-800/60">
-                  {paginatedTeachers.map((teacher) => (
-                    <tr key={teacher.id} className="hover:bg-slate-900/30 transition duration-150">
-                      <td className="px-6 py-4 font-mono text-slate-400">{teacher.employee_id}</td>
-                      <td className="px-6 py-4">
-                        <Link to={`/teachers/${teacher.id}`} className="hover:text-indigo-400 font-semibold text-slate-200">
-                          {`${teacher.user.first_name} ${teacher.user.last_name}`}
-                        </Link>
-                        <span className="block text-xs text-slate-500 mt-0.5">@{teacher.user.username}</span>
-                      </td>
-                      <td className="px-6 py-4">
-                        <span className="px-3 py-1 bg-slate-800/60 border border-slate-700/40 rounded-full text-xs text-slate-300">
-                          {teacher.subject_specialization}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 text-slate-400">{teacher.phone}</td>
-                      <td className="px-6 py-4">
-                        {teacher.is_active ? (
-                          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-950/30 text-emerald-400 border border-emerald-900/50">
-                            <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                            Active
-                          </span>
-                        ) : (
-                          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-slate-800/40 text-slate-500 border border-slate-700/50">
-                            Inactive
-                          </span>
-                        )}
-                      </td>
-                      <td className="px-6 py-4 text-right space-x-2 shrink-0">
-                        <Link
-                          to={`/teachers/${teacher.id}`}
-                          className="inline-flex items-center justify-center p-2 text-slate-400 hover:text-white bg-slate-800/40 hover:bg-slate-800 border border-slate-800 rounded-lg transition"
-                        >
-                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                          </svg>
-                        </Link>
-                        {isAdmin && (
-                          <>
-                            <button
-                              onClick={() => openEditDrawer(teacher)}
-                              className="inline-flex items-center justify-center p-2 text-indigo-400 hover:text-white bg-indigo-950/20 hover:bg-indigo-600 border border-indigo-900/30 rounded-lg transition"
-                            >
-                              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                              </svg>
-                            </button>
-                            <button
-                              onClick={() => handleDeleteTeacher(teacher.id)}
-                              className="inline-flex items-center justify-center p-2 text-rose-400 hover:text-white bg-rose-950/20 hover:bg-rose-600 border border-rose-900/30 rounded-lg transition"
-                            >
-                              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                              </svg>
-                            </button>
-                          </>
-                        )}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-
-          {/* Pagination Indicators */}
-          {totalPages > 1 && (
-            <div className="flex items-center justify-between border-t border-slate-800/80 pt-4">
-              <span className="text-xs text-slate-500">
-                Showing Page {page} of {totalPages} ({filteredTeachers.length} entries)
-              </span>
-              <div className="flex items-center gap-1.5">
-                <button
-                  onClick={() => setPage(p => Math.max(p - 1, 1))}
-                  disabled={page === 1}
-                  className="px-3 py-1.5 bg-slate-900 hover:bg-slate-800 text-xs rounded-lg border border-slate-800 disabled:opacity-40 disabled:hover:bg-slate-900 transition"
-                >
-                  Prev
-                </button>
-                <button
-                  onClick={() => setPage(p => Math.min(p + 1, totalPages))}
-                  disabled={page === totalPages}
-                  className="px-3 py-1.5 bg-slate-900 hover:bg-slate-800 text-xs rounded-lg border border-slate-800 disabled:opacity-40 disabled:hover:bg-slate-900 transition"
-                >
-                  Next
-                </button>
+      {/* Table Component */}
+      <DataTable
+        headers={['Name & Credentials', 'Employee ID', 'Specialization', 'Phone', 'Status', { label: 'Actions', align: 'right' }]}
+        loading={loading}
+        empty={filteredTeachers.length === 0}
+        emptyMessage="No teachers matching the search filter."
+        colSpan={6}
+      >
+        {paginatedTeachers.map((teacher) => (
+          <tr key={teacher.id} className="hover:bg-slate-800/30 transition-colors">
+            <td className="px-6 py-4">
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-indigo-600/30 to-violet-600/30 border border-indigo-500/20 text-indigo-400 font-bold flex items-center justify-center text-xs font-heading">
+                  {(teacher.user.first_name || teacher.user.username).substring(0, 2).toUpperCase()}
+                </div>
+                <div>
+                  <Link to={`/teachers/${teacher.id}`} className="font-bold text-white hover:text-indigo-400 transition-colors font-heading block">
+                    {teacher.user.get_full_name || `${teacher.user.first_name} ${teacher.user.last_name}` || teacher.user.username}
+                  </Link>
+                  <span className="text-xs text-slate-500">{teacher.user.email}</span>
+                </div>
               </div>
-            </div>
-          )}
+            </td>
+            <td className="px-6 py-4 font-mono text-xs font-bold text-indigo-400">
+              {teacher.employee_id}
+            </td>
+            <td className="px-6 py-4 font-medium text-slate-300">
+              {teacher.subject_specialization}
+            </td>
+            <td className="px-6 py-4 text-xs font-semibold text-slate-400">
+              {teacher.phone}
+            </td>
+            <td className="px-6 py-4">
+              <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold border ${
+                teacher.is_active 
+                  ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' 
+                  : 'bg-rose-500/10 text-rose-400 border-rose-500/20'
+              }`}>
+                <span className={`w-1.5 h-1.5 rounded-full ${teacher.is_active ? 'bg-emerald-400' : 'bg-rose-400'}`} />
+                {teacher.is_active ? 'Active' : 'Inactive'}
+              </span>
+            </td>
+            <td className="px-6 py-4 text-right">
+              <div className="flex items-center justify-end gap-2">
+                <Link
+                  to={`/teachers/${teacher.id}`}
+                  className="p-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
+                  title="View Detail"
+                >
+                  👁️
+                </Link>
+                {isAdmin && (
+                  <>
+                    <button
+                      onClick={() => openEditDrawer(teacher)}
+                      className="p-2 rounded-lg text-slate-400 hover:text-indigo-400 hover:bg-slate-800 transition-colors"
+                      title="Edit Teacher"
+                    >
+                      ✏️
+                    </button>
+                    <button
+                      onClick={() => handleDeleteTeacher(teacher.id)}
+                      className="p-2 rounded-lg text-slate-400 hover:text-rose-400 hover:bg-slate-800 transition-colors"
+                      title="Delete Teacher"
+                    >
+                      🗑️
+                    </button>
+                  </>
+                )}
+              </div>
+            </td>
+          </tr>
+        ))}
+      </DataTable>
+
+      {/* Pagination Footer */}
+      {totalPages > 1 && (
+        <div className="flex items-center justify-between px-2 text-sm text-slate-400">
+          <span>Showing Page {page} of {totalPages}</span>
+          <div className="flex gap-2">
+            <button
+              onClick={() => setPage(p => Math.max(1, p - 1))}
+              disabled={page === 1}
+              className="btn-secondary text-xs disabled:opacity-40"
+            >
+              Previous
+            </button>
+            <button
+              onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+              disabled={page === totalPages}
+              className="btn-secondary text-xs disabled:opacity-40"
+            >
+              Next
+            </button>
+          </div>
         </div>
       )}
 
-      {/* Slide-over Drawer / Modal Form (Admin Only) */}
+      {/* Form Slide-Over Drawer */}
       {isDrawerOpen && (
-        <div className="fixed inset-0 overflow-hidden z-50">
-          <div className="absolute inset-0 overflow-hidden">
-            {/* Backdrop Overlay */}
-            <div
-              className="absolute inset-0 bg-slate-950/60 backdrop-blur-sm transition-opacity"
-              onClick={() => setIsDrawerOpen(false)}
-            />
+        <div className="fixed inset-0 z-50 overflow-hidden">
+          <div className="absolute inset-0 bg-slate-950/80 backdrop-blur-sm transition-opacity" onClick={() => setIsDrawerOpen(false)} />
 
-            <div className="pointer-events-none fixed inset-y-0 right-0 flex max-w-full pl-10">
-              <div className="pointer-events-auto w-screen max-w-md">
-                <div className="flex h-full flex-col overflow-y-scroll bg-slate-900 border-l border-slate-800 text-slate-100 shadow-2xl">
-                  {/* Drawer Header */}
-                  <div className="px-6 py-6 bg-slate-900/90 border-b border-slate-800 flex items-center justify-between">
+          <div className="pointer-events-none fixed inset-y-0 right-0 flex max-w-full pl-10">
+            <div className="pointer-events-auto w-screen max-w-md bg-slate-900 border-l border-slate-800 p-6 shadow-2xl flex flex-col justify-between overflow-y-auto">
+              <div className="space-y-6">
+                <div className="flex items-center justify-between border-b border-slate-800 pb-4">
+                  <h2 className="text-xl font-bold text-white font-heading">
+                    {editingTeacher ? 'Edit Teacher Profile' : 'Register New Teacher'}
+                  </h2>
+                  <button onClick={() => setIsDrawerOpen(false)} className="text-slate-500 hover:text-white">✕</button>
+                </div>
+
+                {formError && (
+                  <div className="p-3 bg-rose-500/10 border border-rose-500/20 text-rose-300 text-xs rounded-xl">
+                    {formError}
+                  </div>
+                )}
+
+                <form id="teacherForm" onSubmit={handleFormSubmit} className="space-y-4">
+                  <div className="grid grid-cols-2 gap-3">
                     <div>
-                      <h2 className="text-lg font-bold text-white">
-                        {editingTeacher ? 'Edit Teacher Details' : 'Add New Teacher'}
-                      </h2>
-                      <p className="text-xs text-slate-500 mt-0.5">
-                        {editingTeacher ? 'Modify credential configurations' : 'Create linked user and teacher profile'}
-                      </p>
+                      <label className="block text-xs font-semibold text-slate-400 uppercase mb-1">First Name</label>
+                      <input
+                        type="text"
+                        name="first_name"
+                        required
+                        value={formData.first_name}
+                        onChange={handleInputChange}
+                        className="input-base w-full"
+                      />
                     </div>
-                    <button
-                      onClick={() => setIsDrawerOpen(false)}
-                      className="text-slate-400 hover:text-white"
-                    >
-                      <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                      </svg>
-                    </button>
+                    <div>
+                      <label className="block text-xs font-semibold text-slate-400 uppercase mb-1">Last Name</label>
+                      <input
+                        type="text"
+                        name="last_name"
+                        required
+                        value={formData.last_name}
+                        onChange={handleInputChange}
+                        className="input-base w-full"
+                      />
+                    </div>
                   </div>
 
-                  {/* Drawer Form Body */}
-                  <form onSubmit={handleFormSubmit} className="flex-1 flex flex-col justify-between p-6 space-y-6">
-                    <div className="space-y-4">
-                      {formError && (
-                        <div className="bg-rose-950/20 border border-rose-900/50 rounded-xl p-3.5 text-xs text-rose-300 font-medium">
-                          {formError}
-                        </div>
-                      )}
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-400 uppercase mb-1">Employee ID</label>
+                    <input
+                      type="text"
+                      name="employee_id"
+                      required
+                      placeholder="e.g. TCH-2026-01"
+                      value={formData.employee_id}
+                      onChange={handleInputChange}
+                      className="input-base w-full font-mono"
+                    />
+                  </div>
 
-                      {/* Username (Locked on edit) */}
-                      <div>
-                        <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">
-                          Username
-                        </label>
-                        <input
-                          type="text"
-                          name="username"
-                          required
-                          disabled={!!editingTeacher || formLoading}
-                          value={formData.username}
-                          onChange={handleInputChange}
-                          className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-slate-100 placeholder-slate-600 focus:outline-none focus:border-indigo-500 disabled:opacity-50"
-                          placeholder="e.g. jdoe"
-                        />
-                      </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-400 uppercase mb-1">Username</label>
+                    <input
+                      type="text"
+                      name="username"
+                      required
+                      value={formData.username}
+                      onChange={handleInputChange}
+                      className="input-base w-full"
+                    />
+                  </div>
 
-                      {/* Password (Optional on edit) */}
-                      <div>
-                        <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">
-                          Password {editingTeacher && '(Leave blank to keep unchanged)'}
-                        </label>
-                        <input
-                          type="password"
-                          name="password"
-                          required={!editingTeacher}
-                          disabled={formLoading}
-                          value={formData.password}
-                          onChange={handleInputChange}
-                          className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-slate-100 placeholder-slate-600 focus:outline-none focus:border-indigo-500"
-                          placeholder="••••••••"
-                        />
-                      </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-400 uppercase mb-1">Email</label>
+                    <input
+                      type="email"
+                      name="email"
+                      required
+                      value={formData.email}
+                      onChange={handleInputChange}
+                      className="input-base w-full"
+                    />
+                  </div>
 
-                      {/* Email */}
-                      <div>
-                        <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">
-                          Email Address
-                        </label>
-                        <input
-                          type="email"
-                          name="email"
-                          required
-                          disabled={formLoading}
-                          value={formData.email}
-                          onChange={handleInputChange}
-                          className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-slate-100 placeholder-slate-600 focus:outline-none focus:border-indigo-500"
-                          placeholder="e.g. john@rawatclasses.com"
-                        />
-                      </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-400 uppercase mb-1">
+                      {editingTeacher ? 'New Password (Leave blank to keep current)' : 'Password'}
+                    </label>
+                    <input
+                      type="password"
+                      name="password"
+                      required={!editingTeacher}
+                      value={formData.password}
+                      onChange={handleInputChange}
+                      className="input-base w-full"
+                    />
+                  </div>
 
-                      {/* Name Fields */}
-                      <div className="grid grid-cols-2 gap-4">
-                        <div>
-                          <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">
-                            First Name
-                          </label>
-                          <input
-                            type="text"
-                            name="first_name"
-                            disabled={formLoading}
-                            value={formData.first_name}
-                            onChange={handleInputChange}
-                            className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-slate-100 placeholder-slate-600 focus:outline-none focus:border-indigo-500"
-                            placeholder="John"
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">
-                            Last Name
-                          </label>
-                          <input
-                            type="text"
-                            name="last_name"
-                            disabled={formLoading}
-                            value={formData.last_name}
-                            onChange={handleInputChange}
-                            className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-slate-100 placeholder-slate-600 focus:outline-none focus:border-indigo-500"
-                            placeholder="Doe"
-                          />
-                        </div>
-                      </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-400 uppercase mb-1">Phone</label>
+                    <input
+                      type="text"
+                      name="phone"
+                      required
+                      value={formData.phone}
+                      onChange={handleInputChange}
+                      className="input-base w-full"
+                    />
+                  </div>
 
-                      <div className="border-t border-slate-800 my-4 pt-4">
-                        <span className="text-xs font-bold text-indigo-400 uppercase tracking-wider block mb-4">Profile Details</span>
-                      </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-400 uppercase mb-1">Specialization</label>
+                    <input
+                      type="text"
+                      name="subject_specialization"
+                      required
+                      placeholder="e.g. Mathematics, Organic Chemistry"
+                      value={formData.subject_specialization}
+                      onChange={handleInputChange}
+                      className="input-base w-full"
+                    />
+                  </div>
 
-                      {/* Employee ID */}
-                      <div>
-                        <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">
-                          Employee ID (Unique)
-                        </label>
-                        <input
-                          type="text"
-                          name="employee_id"
-                          required
-                          disabled={formLoading}
-                          value={formData.employee_id}
-                          onChange={handleInputChange}
-                          className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-slate-100 placeholder-slate-600 focus:outline-none focus:border-indigo-500"
-                          placeholder="e.g. TCH-001"
-                        />
-                      </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-400 uppercase mb-1">Qualification</label>
+                    <input
+                      type="text"
+                      name="qualification"
+                      required
+                      placeholder="e.g. M.Sc. Physics, Ph.D."
+                      value={formData.qualification}
+                      onChange={handleInputChange}
+                      className="input-base w-full"
+                    />
+                  </div>
 
-                      {/* Phone */}
-                      <div>
-                        <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">
-                          Phone Number
-                        </label>
-                        <input
-                          type="text"
-                          name="phone"
-                          required
-                          disabled={formLoading}
-                          value={formData.phone}
-                          onChange={handleInputChange}
-                          className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-slate-100 placeholder-slate-600 focus:outline-none focus:border-indigo-500"
-                          placeholder="e.g. +91 9876543210"
-                        />
-                      </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-400 uppercase mb-1">Joining Date</label>
+                    <input
+                      type="date"
+                      name="joining_date"
+                      required
+                      value={formData.joining_date}
+                      onChange={handleInputChange}
+                      className="input-base w-full"
+                    />
+                  </div>
 
-                      {/* Subject Spec & Qualification */}
-                      <div className="grid grid-cols-2 gap-4">
-                        <div>
-                          <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">
-                            Subject specialty
-                          </label>
-                          <input
-                            type="text"
-                            name="subject_specialization"
-                            required
-                            disabled={formLoading}
-                            value={formData.subject_specialization}
-                            onChange={handleInputChange}
-                            className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-slate-100 placeholder-slate-600 focus:outline-none focus:border-indigo-500"
-                            placeholder="e.g. Mathematics"
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">
-                            Qualification
-                          </label>
-                          <input
-                            type="text"
-                            name="qualification"
-                            required
-                            disabled={formLoading}
-                            value={formData.qualification}
-                            onChange={handleInputChange}
-                            className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-slate-100 placeholder-slate-600 focus:outline-none focus:border-indigo-500"
-                            placeholder="e.g. M.Sc. Math"
-                          />
-                        </div>
-                      </div>
+                  <div className="flex items-center gap-2 pt-2">
+                    <input
+                      type="checkbox"
+                      id="is_active"
+                      name="is_active"
+                      checked={formData.is_active}
+                      onChange={handleInputChange}
+                      className="h-4 w-4 rounded border-slate-700 bg-slate-950 text-indigo-600 focus:ring-indigo-500"
+                    />
+                    <label htmlFor="is_active" className="text-sm font-medium text-slate-300">
+                      Active Staff Member
+                    </label>
+                  </div>
+                </form>
+              </div>
 
-                      {/* Joining Date */}
-                      <div>
-                        <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">
-                          Joining Date
-                        </label>
-                        <input
-                          type="date"
-                          name="joining_date"
-                          required
-                          disabled={formLoading}
-                          value={formData.joining_date}
-                          onChange={handleInputChange}
-                          className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-slate-100 focus:outline-none focus:border-indigo-500"
-                        />
-                      </div>
-
-                      {/* Is Active */}
-                      <div className="flex items-center gap-2 pt-2">
-                        <input
-                          type="checkbox"
-                          id="is_active"
-                          name="is_active"
-                          disabled={formLoading}
-                          checked={formData.is_active}
-                          onChange={handleInputChange}
-                          className="h-4.5 w-4.5 rounded border-slate-800 bg-slate-950 text-indigo-600 focus:ring-indigo-500"
-                        />
-                        <label htmlFor="is_active" className="text-sm font-semibold text-slate-350">
-                          Mark as Active Staff Member
-                        </label>
-                      </div>
-                    </div>
-
-                    {/* Submit Actions */}
-                    <div className="flex items-center gap-3 border-t border-slate-800 pt-6">
-                      <button
-                        type="button"
-                        onClick={() => setIsDrawerOpen(false)}
-                        className="flex-1 px-4 py-2.5 bg-slate-800 hover:bg-slate-700 font-semibold rounded-xl text-slate-300 text-sm transition"
-                      >
-                        Cancel
-                      </button>
-                      <button
-                        type="submit"
-                        disabled={formLoading}
-                        className="flex-1 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-500 font-semibold rounded-xl text-white text-sm transition flex items-center justify-center gap-2"
-                      >
-                        {formLoading ? (
-                          <>
-                            <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
-                            <span>Saving...</span>
-                          </>
-                        ) : (
-                          <span>Save Profile</span>
-                        )}
-                      </button>
-                    </div>
-                  </form>
-                </div>
+              <div className="pt-6 border-t border-slate-800 flex gap-3">
+                <button
+                  type="button"
+                  onClick={() => setIsDrawerOpen(false)}
+                  className="btn-secondary flex-1"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  form="teacherForm"
+                  disabled={formLoading}
+                  className="btn-primary flex-1"
+                >
+                  {formLoading ? 'Saving...' : editingTeacher ? 'Save Profile' : 'Create Teacher'}
+                </button>
               </div>
             </div>
           </div>

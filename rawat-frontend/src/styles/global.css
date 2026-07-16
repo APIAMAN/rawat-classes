@@ -1,1 +1,132 @@
 @import "tailwindcss";
+
+@layer base {
+  :root {
+    --font-heading: 'Plus Jakarta Sans', system-ui, sans-serif;
+    --font-sans: 'Inter', system-ui, sans-serif;
+  }
+
+  body {
+    font-family: var(--font-sans);
+    background-color: #070a12;
+    color: #f1f5f9;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-heading);
+    letter-spacing: -0.02em;
+  }
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #090d16;
+}
+::-webkit-scrollbar-thumb {
+  background: #1e293b;
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #334155;
+}
+
+/* Design System Utilities */
+.glass-panel {
+  background: rgba(15, 23, 42, 0.65);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.glass-card {
+  background: linear-gradient(135deg, rgba(20, 29, 50, 0.7) 0%, rgba(13, 20, 36, 0.8) 100%);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.glass-card-hover {
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.glass-card-hover:hover {
+  border-color: rgba(99, 102, 241, 0.35);
+  transform: translateY(-2px);
+  box-shadow: 0 12px 30px -10px rgba(99, 102, 241, 0.15);
+}
+
+/* Inputs & Form Controls */
+.input-base {
+  background-color: #0a0f1d;
+  border: 1px solid #1e293b;
+  color: #ffffff;
+  border-radius: 0.75rem;
+  padding: 0.625rem 0.875rem;
+  font-size: 0.875rem;
+  transition: all 0.2s ease-in-out;
+}
+.input-base::placeholder {
+  color: #64748b;
+}
+.input-base:focus {
+  outline: none;
+  border-color: #6366f1;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+}
+.input-base:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Buttons */
+.btn-primary {
+  background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+  color: #ffffff;
+  font-weight: 600;
+  font-size: 0.875rem;
+  border-radius: 0.75rem;
+  padding: 0.625rem 1.25rem;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 14px 0 rgba(99, 102, 241, 0.35);
+}
+.btn-primary:hover {
+  background: linear-gradient(135deg, #4f46e5 0%, #4338ca 100%);
+  box-shadow: 0 6px 20px 0 rgba(99, 102, 241, 0.5);
+  transform: translateY(-1px);
+}
+.btn-primary:active {
+  transform: translateY(0);
+}
+
+.btn-secondary {
+  background-color: #1e293b;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: #e2e8f0;
+  font-weight: 600;
+  font-size: 0.875rem;
+  border-radius: 0.75rem;
+  padding: 0.625rem 1.25rem;
+  transition: all 0.2s ease;
+}
+.btn-secondary:hover {
+  background-color: #334155;
+  color: #ffffff;
+  border-color: rgba(255, 255, 255, 0.15);
+}
+
+/* Toast Keyframes */
+@keyframes toastIn {
+  from {
+    opacity: 0;
+    transform: translateY(-12px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.animate-toast-in {
+  animation: toastIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
