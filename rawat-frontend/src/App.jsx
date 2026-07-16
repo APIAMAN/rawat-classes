@@ -14,6 +14,7 @@ import ProtectedRoute from './components/ProtectedRoute';
 import Login from './routes/Login';
 import Dashboard from './routes/Dashboard';
 import Teachers from './routes/Teachers';
+import TeacherDetail from './routes/TeacherDetail';
 import Batches from './routes/Batches';
 import Students from './routes/Students';
 import Attendance from './routes/Attendance';
@@ -47,20 +48,31 @@ function App() {
           <Route path="/login" element={<Login />} />
         </Route>
 
-        {/* Protected Admin Routes */}
+        {/* Protected workspace Layout (for Admins and Teachers) */}
         <Route
           element={
-            <ProtectedRoute allowedRoles={['admin']}>
+            <ProtectedRoute allowedRoles={['admin', 'teacher']}>
               <AdminLayout />
             </ProtectedRoute>
           }
         >
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/teachers" element={<Teachers />} />
-          <Route path="/batches" element={<Batches />} />
-          <Route path="/students" element={<Students />} />
-          <Route path="/attendance" element={<Attendance />} />
-          <Route path="/fees" element={<Fees />} />
+          <Route path="/teachers/:id" element={<TeacherDetail />} />
+
+          {/* Admin-only specific subpages */}
+          <Route path="/batches" element={
+            <ProtectedRoute allowedRoles={['admin']}><Batches /></ProtectedRoute>
+          } />
+          <Route path="/students" element={
+            <ProtectedRoute allowedRoles={['admin']}><Students /></ProtectedRoute>
+          } />
+          <Route path="/attendance" element={
+            <ProtectedRoute allowedRoles={['admin']}><Attendance /></ProtectedRoute>
+          } />
+          <Route path="/fees" element={
+            <ProtectedRoute allowedRoles={['admin']}><Fees /></ProtectedRoute>
+          } />
         </Route>
 
         {/* Default Redirects */}
