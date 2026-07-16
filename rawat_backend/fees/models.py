@@ -16,6 +16,7 @@ class FeeStructure(TimeStampedModel):
         ('MONTHLY', 'Monthly'),
         ('ONE_TIME', 'One Time'),
         ('QUARTERLY', 'Quarterly'),
+        ('INSTALLMENT', 'Installment'),
     ]
 
     batch = models.ForeignKey(

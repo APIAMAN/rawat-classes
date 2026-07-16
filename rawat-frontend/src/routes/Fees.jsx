@@ -912,6 +912,7 @@ const Fees = () => {
                   <option value="MONTHLY">Monthly</option>
                   <option value="ONE_TIME">One Time</option>
                   <option value="QUARTERLY">Quarterly</option>
+                  <option value="INSTALLMENT">Installments</option>
                 </select>
               </div>
 
