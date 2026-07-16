@@ -65,7 +65,7 @@ const authSlice = createSlice({
     resetAuth: (state) => {
       state.user = null;
       state.isAuthenticated = false;
-      state.status = 'idle';
+      state.status = 'failed';
       state.error = null;
     },
   },
@@ -89,12 +89,14 @@ const authSlice = createSlice({
       .addCase(logoutUser.fulfilled, (state) => {
         state.user = null;
         state.isAuthenticated = false;
-        state.status = 'idle';
+        state.status = 'failed';
+        state.error = null;
       })
       .addCase(logoutUser.rejected, (state) => {
         state.user = null;
         state.isAuthenticated = false;
-        state.status = 'idle';
+        state.status = 'failed';
+        state.error = null;
       })
       // checkAuth
       .addCase(checkAuth.pending, (state) => {
@@ -109,6 +111,7 @@ const authSlice = createSlice({
         state.status = 'failed';
         state.user = null;
         state.isAuthenticated = false;
+        state.error = null;
       });
   },
 });

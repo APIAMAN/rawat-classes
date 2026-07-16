@@ -28,6 +28,9 @@ class CustomTokenObtainPairView(TokenObtainPairView):
                 'username': serializer.user.username,
                 'email': serializer.user.email,
                 'role': serializer.user.role,
+                'first_name': serializer.user.first_name,
+                'last_name': serializer.user.last_name,
+                'full_name': f"{serializer.user.first_name} {serializer.user.last_name}".strip() or serializer.user.username,
             }
         }
         
@@ -128,5 +131,8 @@ class UserMeView(APIView):
             "username": user.username,
             "email": user.email,
             "role": user.role,
+            "first_name": user.first_name,
+            "last_name": user.last_name,
+            "full_name": f"{user.first_name} {user.last_name}".strip() or user.username,
             "profile_id": profile_id
         }, status=status.HTTP_200_OK)

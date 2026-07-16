@@ -56,9 +56,11 @@ const AdminLayout = () => {
     return 'Rawat Workspace';
   };
 
+  const displayName = user?.full_name || (user?.first_name ? `${user.first_name} ${user.last_name || ''}`.trim() : user?.username) || 'User';
+  const userInitials = user?.first_name ? `${user.first_name[0]}${user.last_name ? user.last_name[0] : ''}`.toUpperCase() : user?.username?.substring(0, 2).toUpperCase() || 'AD';
+
   return (
     <div className="min-h-screen bg-[#070a12] text-slate-100 flex flex-col md:flex-row font-sans">
-      {/* Mobile Top Navbar Header */}
       <div className="md:hidden flex items-center justify-between bg-slate-900/90 border-b border-slate-800/80 px-5 py-4 backdrop-blur-md sticky top-0 z-40">
         <div className="flex items-center gap-3">
           <div className="h-9 w-9 rounded-xl overflow-hidden shadow-md border border-amber-400/40">
@@ -80,7 +82,6 @@ const AdminLayout = () => {
         </button>
       </div>
 
-      {/* Mobile Overlay backdrop */}
       {mobileOpen && (
         <div
           onClick={() => setMobileOpen(false)}
@@ -88,14 +89,12 @@ const AdminLayout = () => {
         />
       )}
 
-      {/* Sidebar Navigation */}
       <aside
         className={`${
           mobileOpen ? 'translate-x-0' : '-translate-x-full'
         } md:translate-x-0 transition-transform duration-300 ease-in-out fixed md:static top-0 left-0 h-full w-72 bg-[#0b101d] border-r border-slate-800/80 shrink-0 z-40 flex flex-col justify-between`}
       >
         <div className="p-6 space-y-8 overflow-y-auto">
-          {/* Logo Header */}
           <div className="flex items-center gap-3.5">
             <div className="h-10 w-10 rounded-2xl overflow-hidden border border-amber-400/40 shadow-lg shadow-amber-500/10 shrink-0">
               <img src={saraswatiImg} alt="Maa Saraswati Emblem" className="w-full h-full object-cover" />
@@ -110,9 +109,8 @@ const AdminLayout = () => {
             </div>
           </div>
 
-          {/* Navigation Links */}
-          <nav className="space-y-1.5">
-            <div className="text-[10px] font-bold uppercase tracking-widest text-slate-500 px-3 mb-2 font-heading">
+          <nav className="space-y-1">
+            <div className="px-3 mb-2 text-[11px] font-bold text-slate-500 uppercase tracking-wider font-heading">
               Main Menu
             </div>
             {navItems.map((item) => (
@@ -137,14 +135,13 @@ const AdminLayout = () => {
           </nav>
         </div>
 
-        {/* User Footer Account Info & Logout */}
         <div className="p-5 border-t border-slate-800/80 bg-slate-950/40 space-y-4">
           <div className="flex items-center gap-3 px-1">
-            <div className="h-10 w-10 bg-gradient-to-tr from-slate-800 to-slate-700 rounded-xl flex items-center justify-center border border-slate-700 text-sm font-black text-indigo-400 uppercase font-heading shrink-0 shadow-sm">
-              {user?.username?.substring(0, 2) || 'AD'}
+            <div className="h-10 w-10 bg-gradient-to-tr from-indigo-900 to-slate-800 rounded-xl flex items-center justify-center border border-indigo-500/30 text-sm font-black text-indigo-300 uppercase font-heading shrink-0 shadow-sm">
+              {userInitials}
             </div>
             <div className="flex flex-col min-w-0">
-              <span className="text-sm font-bold text-slate-200 truncate">{user?.username}</span>
+              <span className="text-sm font-bold text-slate-200 truncate" title={displayName}>{displayName}</span>
               <span className="text-xs text-indigo-400 font-semibold capitalize flex items-center gap-1.5">
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
                 {user?.role}
