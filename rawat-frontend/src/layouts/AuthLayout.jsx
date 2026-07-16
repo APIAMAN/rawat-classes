@@ -33,16 +33,15 @@ const AuthLayout = () => {
               </div>
             </div>
 
-            <div className="pt-4 space-y-2">
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/10 text-amber-300 border border-amber-500/20 text-xs font-bold font-heading">
-                ✨ ॐ श्री सरस्वत्यै नमः
-              </span>
-              <h1 className="text-2xl lg:text-3xl font-extrabold text-white tracking-tight font-heading leading-tight">
-                Empowering Wisdom & Academic Excellence
+            <div className="pt-4 space-y-3">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/10 text-amber-300 border border-amber-500/20 text-xs font-bold font-heading">
+                  ✨ ॐ श्री सरस्वत्यै नमः
+                </span>
+              </div>
+              <h1 className="text-3xl lg:text-4xl font-black text-white tracking-tight font-heading leading-tight uppercase bg-gradient-to-r from-white via-slate-100 to-indigo-200 bg-clip-text text-transparent">
+                WE WANT YOU TO EXCEL
               </h1>
-              <p className="text-slate-400 text-xs lg:text-sm leading-relaxed">
-                Seamless management of students, faculty rosters, daily roll calls, and installment fee billing at Rawat Classes.
-              </p>
             </div>
           </div>
 
@@ -53,27 +52,14 @@ const AuthLayout = () => {
               <img
                 src={saraswatiImg}
                 alt="Maa Saraswati — Goddess of Knowledge"
-                className="w-full rounded-xl object-contain max-h-56 transform group-hover:scale-[1.02] transition-transform duration-300"
+                className="w-full rounded-xl object-contain max-h-64 transform group-hover:scale-[1.02] transition-transform duration-300"
               />
-              <div className="p-2 text-center bg-slate-950/90 rounded-b-xl border-t border-slate-800/80">
-                <span className="text-[11px] font-bold text-amber-300 tracking-wide font-heading block">
-                  Blessing of Knowledge & Wisdom
+              <div className="p-2.5 text-center bg-slate-950/90 rounded-b-xl border-t border-slate-800/80">
+                <span className="text-xs font-extrabold text-amber-300 tracking-wider font-heading block uppercase">
+                  Rawat Classes — Dedicated to Excellence
                 </span>
               </div>
             </div>
-          </div>
-
-          {/* Key Features Bullet Pills */}
-          <div className="flex flex-wrap gap-2 relative z-10">
-            <span className="px-3 py-1 bg-slate-950/60 border border-slate-800 rounded-full text-[11px] font-semibold text-slate-300 flex items-center gap-1.5">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" /> Live Attendance
-            </span>
-            <span className="px-3 py-1 bg-slate-950/60 border border-slate-800 rounded-full text-[11px] font-semibold text-slate-300 flex items-center gap-1.5">
-              <span className="w-1.5 h-1.5 rounded-full bg-amber-400" /> Installment Dues
-            </span>
-            <span className="px-3 py-1 bg-slate-950/60 border border-slate-800 rounded-full text-[11px] font-semibold text-slate-300 flex items-center gap-1.5">
-              <span className="w-1.5 h-1.5 rounded-full bg-indigo-400" /> CSV Bulk Upload
-            </span>
           </div>
         </div>
 
