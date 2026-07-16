@@ -16,6 +16,7 @@ import Dashboard from './routes/Dashboard';
 import Teachers from './routes/Teachers';
 import TeacherDetail from './routes/TeacherDetail';
 import Batches from './routes/Batches';
+import BatchDetail from './routes/BatchDetail';
 import Students from './routes/Students';
 import Attendance from './routes/Attendance';
 import Fees from './routes/Fees';
@@ -59,11 +60,10 @@ function App() {
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/teachers" element={<Teachers />} />
           <Route path="/teachers/:id" element={<TeacherDetail />} />
+          <Route path="/batches" element={<Batches />} />
+          <Route path="/batches/:id" element={<BatchDetail />} />
 
           {/* Admin-only specific subpages */}
-          <Route path="/batches" element={
-            <ProtectedRoute allowedRoles={['admin']}><Batches /></ProtectedRoute>
-          } />
           <Route path="/students" element={
             <ProtectedRoute allowedRoles={['admin']}><Students /></ProtectedRoute>
           } />
