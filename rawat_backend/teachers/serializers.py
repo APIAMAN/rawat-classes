@@ -106,3 +106,6 @@ class TeacherCreateSerializer(serializers.ModelSerializer):
             )
             teacher = Teacher.objects.create(user=user, **validated_data)
             return teacher
+
+    def to_representation(self, instance):
+        return TeacherSerializer(instance, context=self.context).data
