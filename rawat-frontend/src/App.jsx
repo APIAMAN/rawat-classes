@@ -81,7 +81,7 @@ function App() {
 
           {/* Admin-only specific subpages */}
           <Route path="/attendance" element={
-            <ProtectedRoute allowedRoles={['admin']}><Attendance /></ProtectedRoute>
+            <ProtectedRoute allowedRoles={['admin', 'teacher']}><Attendance /></ProtectedRoute>
           } />
           <Route path="/fees" element={
             <ProtectedRoute allowedRoles={['admin']}><Fees /></ProtectedRoute>

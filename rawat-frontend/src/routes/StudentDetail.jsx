@@ -2,6 +2,88 @@ import React, { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import client from '../api/client';
 
+// ─── Attendance Summary Card ──────────────────────────────────────────────────
+const AttendanceSummaryCard = ({ studentId }) => {
+  const [summary, setSummary] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetch = async () => {
+      try {
+        const res = await client.get(`attendance/summary/?student=${studentId}`);
+        if (res.data.length > 0) setSummary(res.data[0]);
+      } catch (_) {}
+      finally { setLoading(false); }
+    };
+    fetch();
+  }, [studentId]);
+
+  if (loading) return (
+    <div className="bg-slate-900/20 border border-slate-850 p-6 rounded-2xl flex items-center justify-center">
+      <div className="h-6 w-6 animate-spin rounded-full border-2 border-indigo-500 border-t-transparent" />
+    </div>
+  );
+
+  if (!summary || summary.total_sessions === 0) return (
+    <div className="bg-slate-900/20 border border-slate-850 p-6 rounded-2xl text-center text-slate-500 text-xs">
+      <svg className="w-8 h-8 text-slate-650 mx-auto mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2" />
+      </svg>
+      No attendance sessions recorded yet.
+    </div>
+  );
+
+  const pct = summary.attendance_percentage;
+  const color = pct >= 75 ? 'text-emerald-400' : pct >= 50 ? 'text-amber-400' : 'text-rose-400';
+  const ring  = pct >= 75 ? 'stroke-emerald-500' : pct >= 50 ? 'stroke-amber-500' : 'stroke-rose-500';
+  const circumference = 2 * Math.PI * 36;
+  const dash = (pct / 100) * circumference;
+
+  return (
+    <div className="space-y-4">
+      {/* Donut + % */}
+      <div className="flex items-center gap-6">
+        <div className="relative w-24 h-24 shrink-0">
+          <svg className="w-24 h-24 -rotate-90" viewBox="0 0 80 80">
+            <circle cx="40" cy="40" r="36" fill="none" stroke="#1e293b" strokeWidth="8" />
+            <circle cx="40" cy="40" r="36" fill="none" className={ring} strokeWidth="8"
+              strokeDasharray={`${dash} ${circumference}`} strokeLinecap="round" />
+          </svg>
+          <div className="absolute inset-0 flex items-center justify-center">
+            <span className={`text-xl font-black ${color}`}>{pct}%</span>
+          </div>
+        </div>
+        <div className="space-y-1 text-sm">
+          <div className="flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-emerald-400" />
+            <span className="text-slate-400">Present</span>
+            <span className="ml-auto font-bold text-white">{summary.present_count}</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-amber-400" />
+            <span className="text-slate-400">Late</span>
+            <span className="ml-auto font-bold text-white">{summary.late_count}</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-rose-400" />
+            <span className="text-slate-400">Absent</span>
+            <span className="ml-auto font-bold text-white">{summary.absent_count}</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-sky-400" />
+            <span className="text-slate-400">Excused</span>
+            <span className="ml-auto font-bold text-white">{summary.excused_count}</span>
+          </div>
+        </div>
+      </div>
+      <div className="bg-slate-950/40 border border-slate-800 rounded-xl px-4 py-2 flex items-center justify-between text-xs">
+        <span className="text-slate-500">Total Sessions</span>
+        <span className="font-bold text-slate-200">{summary.total_sessions}</span>
+      </div>
+    </div>
+  );
+};
+
 const StudentDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -179,20 +261,15 @@ const StudentDetail = () => {
         )}
       </div>
 
-      {/* Dynamic Tabs / Grid for Attendance & Fees Placeholders */}
+      {/* Dynamic Tabs / Grid for Attendance & Fees */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Attendance Summary Placeholder */}
+        {/* Live Attendance Summary */}
         <div className="bg-slate-900/10 border border-slate-800/40 rounded-3xl p-6 md:p-8 space-y-4">
           <div>
-            <h2 className="text-lg font-bold text-white">Attendance Ratio</h2>
-            <p className="text-slate-500 text-xs mt-0.5">Roll call ratios and absent metrics (Phase 5)</p>
+            <h2 className="text-lg font-bold text-white">Attendance Summary</h2>
+            <p className="text-slate-500 text-xs mt-0.5">Overall roll call ratio across all sessions</p>
           </div>
-          <div className="bg-slate-900/20 border border-slate-850 p-6 rounded-2xl text-center text-slate-500 text-xs">
-            <svg className="w-8 h-8 text-slate-650 mx-auto mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2" />
-            </svg>
-            Attendance tracking data will be loaded in Phase 5.
-          </div>
+          <AttendanceSummaryCard studentId={id} />
         </div>
 
         {/* Fees Log Placeholder */}
