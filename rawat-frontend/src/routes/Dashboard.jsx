@@ -211,28 +211,6 @@ const Dashboard = () => {
           </div>
         </div>
       )}
-
-      {/* Profile Card */}
-      <div className="bg-slate-900/30 border border-slate-800/80 rounded-3xl p-6 md:p-8 space-y-6">
-        <div>
-          <h2 className="text-lg font-bold text-white font-heading">Authenticated Profile Session</h2>
-          <p className="text-slate-500 text-xs mt-0.5">Secure JWT authentication session synced with Django REST Framework</p>
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-2">
-          <div className="bg-slate-900/60 border border-slate-800 rounded-xl p-4.5">
-            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest block mb-1">User Identity</span>
-            <span className="text-sm font-semibold text-slate-200">{displayName} (@{user?.username})</span>
-          </div>
-          <div className="bg-slate-900/60 border border-slate-800 rounded-xl p-4.5">
-            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest block mb-1">Email Address</span>
-            <span className="text-sm font-semibold text-slate-200">{user?.email}</span>
-          </div>
-          <div className="bg-slate-900/60 border border-slate-800 rounded-xl p-4.5">
-            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest block mb-1">Role Classification</span>
-            <span className="text-sm font-semibold text-slate-200 capitalize">{user?.role}</span>
-          </div>
-        </div>
-      </div>
     </div>
   );
 };
